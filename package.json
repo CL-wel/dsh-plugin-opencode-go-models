@@ -1,0 +1,53 @@
+{
+  "name": "dsh-plugin-opencode-go-models",
+  "version": "1.0.7",
+  "description": "Manage OpenCode Go models from the DSH settings page: save an API key, fetch the live catalog, and add models under a separate opcode-go provider.",
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://github.com/CL-wel/dsh-plugin-opencode-go-models#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CL-wel/dsh-plugin-opencode-go-models.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CL-wel/dsh-plugin-opencode-go-models/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "opencode",
+    "opencode-go",
+    "model-manager"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "docs/*.png"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  }
+}
