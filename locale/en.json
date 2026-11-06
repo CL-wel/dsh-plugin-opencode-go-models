@@ -18,7 +18,6 @@
   "apiKeyMissing": "Not saved",
   "apiKeyUnknown": "Status unknown",
   "apiKeyInvalid": "The API key may contain only printable ASCII characters, with no spaces or line breaks.",
-  "saveForHeader": "An older configuration was detected. Click “Save and apply” once to finish the connection setup.",
   "show": "Show",
   "hide": "Hide",
   "fetchModels": "Fetch models",

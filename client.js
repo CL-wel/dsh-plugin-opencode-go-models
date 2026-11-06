@@ -72,7 +72,6 @@ window.__ModuleLoader__.load({
       apiKeyMissing: '未保存',
       apiKeyUnknown: '状态未知',
       apiKeyInvalid: 'API Key 只能包含可打印 ASCII 字符，不能有空格或换行。',
-      saveForHeader: '检测到旧配置，请点击「保存并应用」完成连接适配。',
       show: '显示',
       hide: '隐藏',
       fetchModels: '获取模型列表',
@@ -156,7 +155,6 @@ window.__ModuleLoader__.load({
       apiKeyMissing: 'Not saved',
       apiKeyUnknown: 'Status unknown',
       apiKeyInvalid: 'The API key may contain only printable ASCII characters, with no spaces or line breaks.',
-      saveForHeader: 'An older configuration was detected. Click “Save and apply” once to finish the connection setup.',
       show: 'Show',
       hide: 'Hide',
       fetchModels: 'Fetch models',
@@ -603,15 +601,16 @@ window.__ModuleLoader__.load({
         profile.baseURL = BASE_URL;
         const existingHeaders =
           isPlainObject(profile.headers) && typeof profile.headers.__jsExpr !== 'string'
-            ? profile.headers
+            ? { ...profile.headers }
             : {};
-        // Static fallback: the pi-ai catalog provider adds this header itself,
-        // but a hand-declared route does not. The Host listener overrides it
-        // with the real Session id when that waterfall reaches the plugin.
-        profile.headers = {
-          ...existingHeaders,
-          'x-opencode-session': 'dsh-opencode-go:' + routeId,
-        };
+        // The Host half sets x-opencode-session per request. Drop the old
+        // static fallback this plugin used to write, but keep any other
+        // headers the user configured on the route.
+        if (existingHeaders['x-opencode-session'] === 'dsh-opencode-go:' + routeId) {
+          delete existingHeaders['x-opencode-session'];
+        }
+        if (Object.keys(existingHeaders).length > 0) profile.headers = existingHeaders;
+        else delete profile.headers;
         if (key === 'standard') delete profile.reasoning;
         else profile.reasoning = key;
         profile.models = group.map((row) => modelEntry(row, key));
@@ -738,18 +737,6 @@ window.__ModuleLoader__.load({
                 ? definitionModel
                 : undefined;
             const rows = readConfiguredRows(providers, userProviders);
-            const needsHeader = Object.entries(providers).some(([routeId, profile]) => {
-              if (routeId !== PRIMARY_ROUTE && !routeId.startsWith(SECONDARY_PREFIX)) return false;
-              const models = profile && Array.isArray(profile.models) ? profile.models : [];
-              return (
-                models.length > 0 &&
-                !(
-                  isPlainObject(profile.headers) &&
-                  typeof profile.headers['x-opencode-session'] === 'string' &&
-                  profile.headers['x-opencode-session'].length > 0
-                )
-              );
-            });
             setState((current) => ({
               ...current,
               status: 'ready',
@@ -761,12 +748,7 @@ window.__ModuleLoader__.load({
               keyRef,
               keyConfigured,
               defaultModelId,
-              notice:
-                keepNotice === true
-                  ? current.notice
-                  : needsHeader
-                    ? { tone: 'info', text: t('saveForHeader') }
-                    : null,
+              notice: keepNotice === true ? current.notice : null,
             }));
           } catch (error) {
             setState((current) => ({

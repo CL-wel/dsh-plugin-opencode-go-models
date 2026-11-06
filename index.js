@@ -2,10 +2,11 @@
  * Host half of the opencode-go bundle.
  *
  * Two contributions:
- *  - `llm-pi-ai/request-headers` adds the `x-opencode-session` header that
+ *  - `llm-pi-ai/request-headers` sets the `x-opencode-session` header that
  *    OpenCode Go requires on inference calls. The value is the real DSH
  *    Session id for session-bound calls; auxiliary calls without one get a
- *    stable process-local fallback so they are still routable.
+ *    stable process-local id per purpose, so every conversation is routed
+ *    and cached independently.
  *  - A same-origin catalog relay so the settings page does not depend on
  *    browser CORS or a deployment CSP allowing a cross-origin request to
  *    opencode.ai.
@@ -39,12 +40,10 @@ export function apply(ctx) {
     () =>
       ctx.on('llm-pi-ai/request-headers', (request, headers, next) => {
         if (isOpenCodeRoute(request.provider)) {
-          const id = request.sessionId;
-          if (typeof id === 'string' && id.length > 0) {
-            headers.set('x-opencode-session', id);
-          } else if (!headers.has('x-opencode-session')) {
-            headers.set('x-opencode-session', sessionHeaderValue(request));
-          }
+          // Always authoritative: override the profile-level fallback so a
+          // session-bound call carries its own conversation id rather than
+          // the shared static value.
+          headers.set('x-opencode-session', sessionHeaderValue(request));
         }
         return next();
       }),
